@@ -104,8 +104,9 @@ def generateDeviceControllers (ctx, SRC_DIR, INC_DIR):
 
     hfile.write ('#include <stdlib.h>\n')
     hfile.write ('\n')
-    hfile.write ('#include <libARSAL/ARSAL_Print.h>\n')
     hfile.write ('#include <libARSAL/ARSAL_Mutex.h>\n')
+    hfile.write ('#include <libARSAL/ARSAL_Print.h>\n')
+    hfile.write ('#include <libARSAL/ARSAL_Time.h>\n')
     hfile.write ('#include <uthash/uthash.h>\n')
     hfile.write ('\n')
     hfile.write ('#include <libARController/ARCONTROLLER_Error.h>\n')
@@ -3443,8 +3444,8 @@ def generateDeviceControllers (ctx, SRC_DIR, INC_DIR):
 
     cFile.write ('    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;\n')
     cFile.write ('    '+className+' *deviceController = data;\n')
-    cFile.write ('    u_int8_t cmdBuffer['+ARMacroName (MODULE_ARCONTROLLER, 'Device', 'DEFAULT_LOOPER_CMD_BUFFER_SIZE')+'];\n')
-    cFile.write ('    int controllerLoopIntervalUs = 0;\n')
+    cFile.write ('    uint8_t cmdBuffer['+ARMacroName (MODULE_ARCONTROLLER, 'Device', 'DEFAULT_LOOPER_CMD_BUFFER_SIZE')+'];\n')
+    cFile.write ('    int controllerLoopIntervalMs = 0;\n')
     cFile.write ('    int mustBeSent = 0;\n')
     cFile.write ('    \n')
 
@@ -3458,8 +3459,8 @@ def generateDeviceControllers (ctx, SRC_DIR, INC_DIR):
     
     cFile.write ('    if (error == ARCONTROLLER_OK)\n')
     cFile.write ('    {\n')
-    cFile.write ('        controllerLoopIntervalUs = MSEC_TO_USEC (deviceController->privatePart->networkConfiguration.controllerLoopIntervalMs);\n')
-    cFile.write ('        if (!(controllerLoopIntervalUs > 0))\n')
+    cFile.write ('        controllerLoopIntervalMs = deviceController->privatePart->networkConfiguration.controllerLoopIntervalMs;\n')
+    cFile.write ('        if (!(controllerLoopIntervalMs > 0))\n')
     cFile.write ('        {\n')
     cFile.write ('            error = ARCONTROLLER_ERROR;\n')
     cFile.write ('        }\n')
@@ -3472,7 +3473,7 @@ def generateDeviceControllers (ctx, SRC_DIR, INC_DIR):
     cFile.write ('               (deviceController->privatePart->state == ARCONTROLLER_DEVICE_STATE_STARTING) ||\n')
     cFile.write ('               (deviceController->privatePart->state == ARCONTROLLER_DEVICE_STATE_PAUSED))\n')
     cFile.write ('        {\n')
-    cFile.write ('            usleep (controllerLoopIntervalUs);\n')
+    cFile.write ('            ARSAL_Time_Sleep (controllerLoopIntervalMs);\n')
     cFile.write ('\n')
     cFile.write ('            if (deviceController->privatePart->state != ARCONTROLLER_DEVICE_STATE_RUNNING)\n')
     cFile.write ('                continue;\n')

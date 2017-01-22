@@ -42,18 +42,21 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <json/json.h>
+
 #include <libARSAL/ARSAL_Print.h>
-#include <libARSAL/ARSAL_Socket.h>
 #include <libARSAL/ARSAL_Thread.h>
+
 #include <libARDiscovery/ARDISCOVERY_Error.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
 #include <libARStream2/arstream2_stream_receiver.h>
 #include <libARController/ARCONTROLLER_Error.h>
+#include <libARController/ARCONTROLLER_Network.h>
 
 #include <libARController/ARCONTROLLER_StreamPool.h>
 #include <libARController/ARCONTROLLER_Stream.h>
 
 #include "ARCONTROLLER_Stream2.h"
+#include "ARCONTROLLER_Network.h"
 #include <libARController/ARCONTROLLER_Stream2.h>
 #if defined BUILD_LIBMUX
 #include <libmux.h>
@@ -76,61 +79,6 @@ static void *ARCONTROLLER_Stream2_RestartRun (void *data);
 /*************************
  * Implementation
  *************************/
-
-static int ARCONTROLLER_Stream2_Open_Socket(const char *name, int *sockfd, int *port)
-{
-    int fd, ret;
-    socklen_t addrlen;
-    struct sockaddr_in addr;
-    int yes;
-
-    fd = ARSAL_Socket_Create (AF_INET, SOCK_DGRAM, 0);
-    if (fd < 0)
-        goto error;
-
-    ret = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-    if (ret < 0)
-        goto error;
-
-    /*  bind to a OS-assigned random port */
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons (0);
-    ret = ARSAL_Socket_Bind(fd, (struct sockaddr *)&addr, sizeof(addr));
-    if (ret < 0) {
-        ret = errno;
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, ARCONTROLLER_STREAM2_TAG,
-                    "bind fd=%d, addr='0.0.0.0', port=0: error='%s'", fd, strerror(ret));
-        goto error;
-    }
-
-    /* get selected port */
-    addrlen = sizeof(addr);
-    ret = ARSAL_Socket_Getsockname(fd, (struct sockaddr *)&addr, &addrlen);
-    if (ret < 0) {
-        ret = errno;
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, ARCONTROLLER_STREAM2_TAG, "getsockname fd=%d, error='%s'", fd, strerror(ret));
-        goto error;
-    }
-
-    yes = 1;
-    ret = ARSAL_Socket_Setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    if (ret < 0) {
-        ret = errno;
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, ARCONTROLLER_STREAM2_TAG, "Failed to set socket option SO_REUSEADDR: error=%d (%s)", ret, strerror(ret));
-    }
-
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARCONTROLLER_STREAM2_TAG, "udp local port %s: %d", name, htons(addr.sin_port));
-    *port = htons(addr.sin_port);
-    *sockfd = fd;
-    return 0;
-error:
-    if (fd >= 0)
-        ARSAL_Socket_Close(fd);
-
-    return -1;
-}
 
 ARCONTROLLER_Stream2_t *ARCONTROLLER_Stream2_New (ARDISCOVERY_Device_t *discoveryDevice, eARCONTROLLER_ERROR *error)
 {
@@ -169,11 +117,11 @@ ARCONTROLLER_Stream2_t *ARCONTROLLER_Stream2_New (ARDISCOVERY_Device_t *discover
 #endif
             }
             
-            ret = ARCONTROLLER_Stream2_Open_Socket("stream", &stream2Controller->clientStreamFd, &stream2Controller->clientStreamPort);
+            ret = ARCONTROLLER_Network_Open_UDP_Socket(&stream2Controller->clientStreamFd, &stream2Controller->clientStreamPort);
             if (ret < 0)
                 localError = ARCONTROLLER_ERROR_INIT_NETWORK_CONFIG;
 
-            ret = ARCONTROLLER_Stream2_Open_Socket("control", &stream2Controller->clientControlFd, &stream2Controller->clientControlPort);
+            ret = ARCONTROLLER_Network_Open_UDP_Socket(&stream2Controller->clientControlFd, &stream2Controller->clientControlPort);
             if (ret < 0)
                 localError = ARCONTROLLER_ERROR_INIT_NETWORK_CONFIG;
 

@@ -36,6 +36,7 @@
  */
  
 #include <stdlib.h>
+#include <json/json.h>
 
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>

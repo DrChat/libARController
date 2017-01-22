@@ -42,6 +42,9 @@
 #include <libARSAL/ARSAL_Mutex.h>
 #include <libARCommands/ARCOMMANDS_Decoder.h>
 
+struct ARCONTROLLER_StreamSender_t;
+typedef struct ARCONTROLLER_StreamSender_t ARCONTROLLER_StreamSender_t;
+
 #define ARCONTROLLER_NETWORK_TAG "ARCONTROLLER_Network"
 #define ARCONTROLLER_NETWORK_READING_TIMEOUT_MS 1000
 
@@ -118,6 +121,8 @@ eARCONTROLLER_ERROR ARCONTROLLER_Network_StopReaderThreads (ARCONTROLLER_Network
  * @see ARCONTROLLER_Network_Stop()
  */
 void *ARCONTROLLER_Network_ReaderRun (void *data);
+
+int ARCONTROLLER_Network_Open_UDP_Socket(int *sockfd, int *port);
 
 //TODO !!!!!!!!!!!!!!!!!
 void ARCONTROLLER_Network_OnDisconnectNetwork (ARNETWORK_Manager_t *manager, ARNETWORKAL_Manager_t *alManager, void *customData);

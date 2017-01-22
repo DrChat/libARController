@@ -38,7 +38,6 @@
 #ifndef _ARCONTROLLER_STREAM_H_
 #define _ARCONTROLLER_STREAM_H_
 
-#include <json/json.h>
 #include <libARSAL/ARSAL_Thread.h>
 #include <libARNetwork/ARNETWORK_Manager.h>
 #include <libARController/ARCONTROLLER_Error.h>
@@ -46,6 +45,9 @@
 #include <libARDiscovery/ARDISCOVERY_Device.h>
 #include <libARController/ARCONTROLLER_Frame.h>
 #include <libARController/ARCONTROLLER_StreamQueue.h>
+
+struct json_object;
+typedef struct json_object json_object;
 
 /**
  * @brief Callback when a frame is received.

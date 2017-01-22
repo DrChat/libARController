@@ -41,9 +41,13 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#define ARSAL_INCLUDE_WSA
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>
 #include <libARSAL/ARSAL_Mutex.h>
+#undef ARSAL_INCLUDE_WSA
+
 #include <libARNetwork/ARNETWORK_Manager.h>
 #include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
@@ -63,7 +67,7 @@
  * Implementation
  *************************/
 
-static int ARCONTROLLER_Network_GetAvailableSocketPort(void)
+int ARCONTROLLER_Network_Open_UDP_Socket(int *sockfd, int *port)
 {
     int fd, ret;
     socklen_t addrlen;
@@ -74,7 +78,7 @@ static int ARCONTROLLER_Network_GetAvailableSocketPort(void)
     if (fd < 0)
         goto error;
 
-    ret = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+    ret = ARSAL_Socket_SetBlocking(fd, 0);
     if (ret < 0)
         goto error;
 
@@ -107,12 +111,24 @@ static int ARCONTROLLER_Network_GetAvailableSocketPort(void)
         ARSAL_PRINT(ARSAL_PRINT_WARNING, ARCONTROLLER_NETWORK_TAG, "Failed to set socket option SO_REUSEADDR: error=%d (%s)", ret, strerror(ret));
     }
 
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARCONTROLLER_NETWORK_TAG, "d2c_port port: %d", htons(addr.sin_port));
-    ARSAL_Socket_Close(fd);
-    return htons(addr.sin_port);
+    *port = htons(addr.sin_port);
+    *sockfd = fd;
+    return 0;
 error:
     if (fd >= 0)
         ARSAL_Socket_Close(fd);
+
+    return -1;
+}
+
+static int ARCONTROLLER_Network_GetAvailableSocketPort(void)
+{
+    int sockfd, port;
+    if (ARCONTROLLER_Network_Open_UDP_Socket(&sockfd, &port) == 0) {
+      ARSAL_Socket_Close(sockfd);
+      return port;
+    }
+
     return -1;
 }
 

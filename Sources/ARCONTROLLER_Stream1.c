@@ -39,8 +39,10 @@
 #include <stdlib.h>
 
 #include <json/json.h>
+
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>
+
 #include <libARStream/ARStream.h>
 #include <libARNetwork/ARNetwork.h>
 #include <libARDiscovery/ARDISCOVERY_Error.h>
