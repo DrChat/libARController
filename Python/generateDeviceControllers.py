@@ -1261,7 +1261,6 @@ def generateDeviceControllers (ctx, SRC_DIR, INC_DIR):
     cFile.write ('    \n')
     
     cFile.write ('    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;\n')
-    cFile.write ('    ARSAL_Thread_t startingThread = NULL;\n')
     cFile.write ('    \n')
     
     cFile.write ('    // Check parameters\n')
@@ -1279,15 +1278,10 @@ def generateDeviceControllers (ctx, SRC_DIR, INC_DIR):
     cFile.write ('        {\n')
     cFile.write ('            ' + ARFunctionName (MODULE_ARCONTROLLER, 'device', 'SetState')+' (deviceController, ARCONTROLLER_DEVICE_STATE_STARTING, ARCONTROLLER_OK);\n')
     
-    cFile.write ('            if (ARSAL_Thread_Create (&startingThread, ' + ARFunctionName (MODULE_ARCONTROLLER, 'device', 'StartRun')+', deviceController) != 0)\n')
+    cFile.write ('            if (ARSAL_Thread_Create (NULL, ' + ARFunctionName (MODULE_ARCONTROLLER, 'device', 'StartRun')+', deviceController) != 0)\n')
     cFile.write ('            {\n')
     cFile.write ('                ARSAL_PRINT(ARSAL_PRINT_ERROR, ARCONTROLLER_DEVICE_TAG, "Creation of Starting thread failed.");\n')
     cFile.write ('                error = ARCONTROLLER_ERROR_INIT_THREAD;\n')
-    cFile.write ('            }\n')
-    cFile.write ('            else\n')
-    cFile.write ('            {\n')
-    cFile.write ('                ARSAL_Thread_Destroy (&startingThread);\n')
-    cFile.write ('                startingThread = NULL;\n')
     cFile.write ('            }\n')
     cFile.write ('            \n')
     cFile.write ('        }\n')
