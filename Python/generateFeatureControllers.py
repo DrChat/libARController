@@ -118,6 +118,16 @@ def generateFeatureControllers (ctx, SRC_DIR, INC_DIR):
     hfile.write ('#include <libARController/ARCONTROLLER_DICTIONARY_Key.h>\n')
     hfile.write ('#include <libARController/ARCONTROLLER_Dictionary.h>\n')
     hfile.write ('\n')
+    hfile.write ('#ifdef _WIN32\n')
+    hfile.write ('#  if defined(AR_BUILDING_WIN32)\n')
+    hfile.write ('#    define AR_EXPORT\n')
+    hfile.write ('#  else\n')
+    hfile.write ('#    define AR_EXPORT __declspec(dllimport)\n')
+    hfile.write ('#  endif\n')
+    hfile.write ('#else\n')
+    hfile.write ('#  define AR_EXPORT\n')
+    hfile.write ('#endif\n')
+    hfile.write ('\n')
 
     for feature in ctx.features: # see automake all source of folder !!!!!!!!!!!!!!
         className = ARTypeName (MODULE_FEATURE, get_ftr_old_name(feature), '')  # see automake all source of folder !!!!
@@ -211,7 +221,7 @@ def generateFeatureControllers (ctx, SRC_DIR, INC_DIR):
         
         for evt in feature.evts:
             for arg in [arg1 for arg1 in evt.args if arg1.name != _LIST_FLAG]:
-                hfile.write ('extern const char *' + defineNotification(feature, evt, arg) + '; /**< Key of the argument </code>'+ arg.name+'</code> of event <code>' + ARCapitalize (format_cmd_name(evt)) + '</code> in feature <code>' + ARCapitalize (get_ftr_old_name(feature)) + '</code> */\n')
+                hfile.write ('extern AR_EXPORT const char *' + defineNotification(feature, evt, arg) + '; /**< Key of the argument </code>'+ arg.name+'</code> of event <code>' + ARCapitalize (format_cmd_name(evt)) + '</code> in feature <code>' + ARCapitalize (get_ftr_old_name(feature)) + '</code> */\n')
             hfile.write('\n');
             
         for cmd in feature.cmds:
@@ -312,6 +322,7 @@ def generateFeatureControllers (ctx, SRC_DIR, INC_DIR):
         hfile.write ('\n')
         
         
+    hfile.write ('#undef AR_EXPORT\n')
     hfile.write ('#endif /* '+includeDefine+' */\n')
     hfile.write ('\n')
     hfile.write ('// END GENERATED CODE\n')
